@@ -1,0 +1,86 @@
+<%
+  const item = r;
+  const isFav = (favoriteIds || []).includes(String(item._id));
+  const cuisine = item.cuisine || 'viet';
+  const menuList = Array.isArray(item.menu) ? item.menu : [];
+%>
+<article
+  class="rest-card"
+  data-cuisine="<%= cuisine %>"
+  data-restaurant-card
+  data-restaurant-json="<%= JSON.stringify({
+    _id: item._id,
+    name: item.name,
+    address: item.address,
+    district: item.district || 'Đà Nẵng',
+    category: item.category,
+    cuisine: cuisine,
+    image: item.image,
+    rating: item.rating || 4.8,
+    reviewCount: item.reviewCount || '999+',
+    deliveryTime: item.deliveryTime || '15 phút',
+    distance: item.distance || '1.2 km',
+    isPreferred: item.isPreferred !== false,
+    promoTag: item.promoTag || 'Freeship 15k',
+    priceRange: item.priceRange || '25.000đ - 55.000đ',
+    openingHours: item.openingHours || '06:00 - 22:00',
+    mapUrl: item.mapUrl,
+    menu: menuList
+  }) %>"
+>
+  <div class="rest-card__photo">
+    <% if (item.image) { %>
+      <img src="<%= item.image %>" alt="<%= item.name %>" loading="lazy">
+    <% } %>
+
+    <% if (item.isPreferred !== false) { %>
+      <span class="rest-badge">Yêu thích+</span>
+    <% } %>
+
+    <button
+      type="button"
+      class="rest-fav-btn"
+      data-favorite-id="<%= item._id %>"
+      data-favorite="<%= isFav %>"
+      aria-pressed="<%= isFav %>"
+    ><%= isFav ? 'Đã lưu' : 'Lưu' %></button>
+
+    <span class="rest-meta-pill"><%= item.deliveryTime || '15 phút' %> · <%= item.distance || '1.2 km' %></span>
+  </div>
+
+  <div class="rest-card__body">
+    <div class="rest-card__top">
+      <span class="rest-card__cat"><%= item.category %></span>
+      <span class="rest-card__rating">★ <%= Number(item.rating || 4.8).toFixed(1) %> <span>(<%= item.reviewCount || '999+' %>)</span></span>
+    </div>
+
+    <h3 class="rest-card__name"><%= item.name %></h3>
+    <p class="rest-card__addr"><%= item.address %></p>
+
+    <div class="rest-card__tags">
+      <% if (item.promoTag) { %>
+        <span class="rest-tag rest-tag--promo"><%= item.promoTag %></span>
+      <% } %>
+      <% if (item.priceRange) { %>
+        <span class="rest-tag"><%= item.priceRange %></span>
+      <% } %>
+    </div>
+
+    <% if (menuList.length > 0) { %>
+      <div class="rest-menu-preview">
+        <span class="rest-menu-preview__title">Thực đơn nổi bật</span>
+        <% menuList.slice(0, 2).forEach(function (food) { %>
+          <div class="rest-menu-preview__row">
+            <span class="rest-menu-preview__name"><%= food.name %></span>
+            <span class="rest-menu-preview__price"><%= Number(food.price || 0).toLocaleString('vi-VN') %>đ</span>
+          </div>
+        <% }) %>
+      </div>
+    <% } %>
+
+    <div class="rest-card__actions">
+      <a class="btn" href="<%= item.mapUrl %>" target="_blank" rel="noopener noreferrer">Bản đồ</a>
+      <button class="btn btn--primary" type="button" data-open-menu-btn>Thực đơn (<%= menuList.length %>)</button>
+    </div>
+  </div>
+</article>

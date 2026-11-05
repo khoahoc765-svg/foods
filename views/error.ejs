@@ -1,0 +1,17 @@
+<%- include('partials/head') %>
+<%- include('partials/navbar') %>
+
+<main id="main" class="page wrap">
+  <section class="empty">
+    <h1><%= status %> — <%= title %></h1>
+    <p><%= message %></p>
+    <div style="display:flex;flex-wrap:wrap;gap:.75rem;margin-top:.75rem;">
+      <a class="btn btn--primary btn--lg" href="/index.html">Về trang chủ</a>
+      <% if (status === 403 && !currentUser) { %>
+        <a class="btn btn--lg" href="/auth/login">Đăng nhập</a>
+      <% } %>
+    </div>
+  </section>
+</main>
+
+<%- include('partials/footer') %>

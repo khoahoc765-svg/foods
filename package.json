@@ -1,0 +1,26 @@
+{
+  "name": "hom-nay-an-gi",
+  "version": "2.1.0",
+  "description": "Hôm Nay Ăn Gì? — Chọn quán ăn Đà Nẵng chuẩn GrabFood / ShopeeFood (Node.js, Express, MongoDB, EJS, Tailwind CSS)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "seed": "node seed.js",
+    "import": "node importGrabShopee.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "mongoose": "^8.5.0"
+  },
+  "optionalDependencies": {
+    "mongodb-memory-server": "^10.0.0"
+  }
+}

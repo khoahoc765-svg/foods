@@ -1,0 +1,26 @@
+<a class="skip" href="#main">Bỏ qua đến nội dung chính</a>
+<header class="site-header wrap" id="site-header">
+  <a class="logo" href="/index.html">Hôm nay ăn gì?</a>
+  <button class="btn nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="nav">Menu</button>
+  <nav class="nav" id="nav" aria-label="Menu chính">
+    <ul>
+      <li><a href="/cuisines.html">Ẩm thực</a></li>
+      <li><a href="/dishes.html">Tất cả món ăn</a></li>
+      <li><a href="/restaurants"<%= currentPath === '/restaurants' ? ' aria-current="page"' : '' %>>Quán Đà Nẵng</a></li>
+      <li><a href="/about.html">Giới thiệu</a></li>
+      <% if (currentUser) { %>
+        <li><a href="/favorites"<%= currentPath === '/favorites' ? ' aria-current="page"' : '' %>>Yêu thích</a></li>
+        <% if (currentUser.role === 'admin') { %>
+          <li><a href="/admin"<%= currentPath.startsWith('/admin') ? ' aria-current="page"' : '' %>>Quản trị</a></li>
+        <% } %>
+        <li>
+          <form action="/auth/logout" method="POST" style="display:inline;">
+            <button type="submit" style="background:none;border:0;padding:.5rem 0;font:500 1rem/1.6 var(--font-body);color:var(--muted);cursor:pointer;">Đăng xuất</button>
+          </form>
+        </li>
+      <% } else { %>
+        <li><a href="/auth/login"<%= currentPath.startsWith('/auth') ? ' aria-current="page"' : '' %>>Đăng nhập</a></li>
+      <% } %>
+    </ul>
+  </nav>
+</header>

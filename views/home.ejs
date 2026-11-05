@@ -1,0 +1,102 @@
+<%- include('partials/head') %>
+<%- include('partials/navbar') %>
+<%- include('partials/flash') %>
+
+<%
+  function filterUrl(overrides) {
+    const params = Object.assign({}, applied, overrides);
+    const search = ['category', 'mealTime', 'q', 'dish', 'dishName', 'cuisine']
+      .filter(function (k) { return params[k]; })
+      .map(function (k) { return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]); })
+      .join('&');
+    return '/restaurants' + (search ? '?' + search : '');
+  }
+  const hasFilter = applied.category || applied.mealTime || applied.q || applied.dish;
+%>
+
+<main id="main" class="page wrap">
+  <div class="rest-header">
+    <div>
+      <h1>Quán ăn Đà Nẵng <span>(<%= restaurants.length %>)</span></h1>
+      <p class="lead"><%= greeting.text %> Lọc theo phân loại, bữa ăn hoặc bấm "Bất ngờ đi!" để máy quay chọn giúp bạn.</p>
+      <% if (applied.dish) { %>
+        <p class="rest-dish-context">
+          Đang tìm quán cho món <strong><%= applied.dishName || applied.dish %></strong><%= applied.dishFallback ? ' — chưa có quán khớp chính xác, đang gợi ý cùng nền ẩm thực.' : '' %>
+          <a href="/result.html?dish=<%= encodeURIComponent(applied.dish) %>&cuisine=<%= encodeURIComponent(applied.cuisine) %>" class="rest-dish-context__link">Quay lại kết quả món</a>
+        </p>
+      <% } %>
+    </div>
+    <div class="rest-header__actions">
+      <a class="btn" href="/result.html?mode=any">Quay món chính</a>
+      <button class="btn btn--primary btn--lg" id="open-slot-top" type="button">Bất ngờ đi!</button>
+    </div>
+  </div>
+
+  <div class="filters">
+    <div class="filters__row" role="group" aria-label="Lọc theo phân loại">
+      <a class="pill" href="<%= filterUrl({ category: '' }) %>" aria-pressed="<%= !applied.category %>">Tất cả</a>
+      <% categories.forEach(function (c) { %>
+        <a class="pill" href="<%= filterUrl({ category: c }) %>" aria-pressed="<%= applied.category === c %>"><%= c %></a>
+      <% }) %>
+    </div>
+
+    <div class="filters__row" role="group" aria-label="Lọc theo bữa ăn">
+      <a class="pill" href="<%= filterUrl({ mealTime: '' }) %>" aria-pressed="<%= !applied.mealTime %>">Mọi bữa</a>
+      <% mealTimes.forEach(function (m) { %>
+        <a class="pill" href="<%= filterUrl({ mealTime: m }) %>" aria-pressed="<%= applied.mealTime === m %>"><%= m %><%= m === currentMeal ? ' (hiện tại)' : '' %></a>
+      <% }) %>
+    </div>
+  </div>
+
+  <% if (restaurants.length === 0) { %>
+    <section class="empty">
+      <h2>Chưa có quán nào như vậy</h2>
+      <p>Bạn thử đổi phân loại hoặc bữa ăn khác nhé.</p>
+      <a class="btn btn--primary" href="/restaurants">Bỏ lọc</a>
+    </section>
+  <% } else { %>
+    <div class="rest-grid">
+      <% restaurants.forEach(function (r) { %>
+        <%- include('partials/restaurant-card', { r: r }) %>
+      <% }) %>
+      <button class="surprise" id="open-slot" type="button">
+        <span class="surprise__name">Bất ngờ đi!</span>
+        <span class="surprise__desc">Không chọn được quán? Để máy quay chọn ngẫu nhiên một quán ăn tại Đà Nẵng cho bạn.</span>
+      </button>
+    </div>
+  <% } %>
+</main>
+
+<!-- Máy quay xèng chọn quán chuẩn thiết kế .slot -->
+<dialog class="slot" id="slot" aria-labelledby="slot-title">
+  <div class="slot__body">
+    <button class="btn slot__close" id="slot-close" type="button">Đóng</button>
+    <h2 id="slot-title">Bất ngờ đi!</h2>
+    <p class="slot__status" id="slot-status" aria-live="polite">Bấm Quay để máy chọn quán giúp bạn.</p>
+    <div class="slot__reels">
+      <div>
+        <div class="slot__window"><ul class="slot__strip" id="reel-category"></ul></div>
+        <span class="slot__label">Phân loại</span>
+      </div>
+      <div>
+        <div class="slot__window"><ul class="slot__strip" id="reel-restaurant"></ul></div>
+        <span class="slot__label">Quán ăn Đà Nẵng</span>
+      </div>
+    </div>
+    <button class="btn btn--primary btn--lg slot__spin" id="slot-spin" type="button">Quay</button>
+  </div>
+</dialog>
+
+<script>
+  window.HNAG = {
+    isLoggedIn: <%= currentUser ? 'true' : 'false' %>,
+    favoriteIds: <%- JSON.stringify(favoriteIds) %>,
+    appliedCategory: <%- JSON.stringify(applied.category || '') %>,
+    appliedMeal: <%- JSON.stringify(applied.mealTime || '') %>,
+    appliedDish: <%- JSON.stringify(applied.dish || '') %>,
+    appliedDishName: <%- JSON.stringify(applied.dishName || '') %>,
+    appliedCuisine: <%- JSON.stringify(applied.cuisine || '') %>
+  };
+</script>
+<script src="/js/slot.js"></script>
+<%- include('partials/footer') %>

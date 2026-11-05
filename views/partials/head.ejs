@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= typeof title !== 'undefined' ? title + ' | Hôm nay ăn gì?' : 'Hôm nay ăn gì?' %></title>
+  <meta name="description" content="Không biết ăn gì? Chọn ngẫu nhiên một món hợp với giờ này, hoặc chọn quán ngon tại Đà Nẵng.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='8' fill='%23C2410C'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,500..800&display=swap" rel="stylesheet">
+  <% if (typeof currentPath !== 'undefined' && (currentPath.startsWith('/admin') || currentPath.startsWith('/auth'))) { %>
+    <link rel="stylesheet" href="/css/app.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'media',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['"Be Vietnam Pro"', 'system-ui', 'sans-serif'],
+              display: ['"Bricolage Grotesque"', '"Be Vietnam Pro"', 'sans-serif']
+            },
+            colors: {
+              bg: 'var(--bg)',
+              surface: 'var(--surface)',
+              ink: 'var(--ink)',
+              muted: 'var(--muted)',
+              line: 'var(--line)',
+              brand: 'var(--brand)',
+              accent: 'var(--accent)',
+              'accent-soft': 'var(--soft)',
+              'on-accent': 'var(--on-accent)'
+            }
+          }
+        }
+      };
+    </script>
+  <% } %>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>

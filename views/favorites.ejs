@@ -1,0 +1,29 @@
+<%- include('partials/head') %>
+<%- include('partials/navbar') %>
+<%- include('partials/flash') %>
+
+<main id="main" class="page wrap">
+  <div class="rest-header">
+    <div>
+      <h1>Quán yêu thích <span>(<%= restaurants.length %>)</span></h1>
+      <p class="lead">Những quán bạn đã lưu lại. Bấm "Đã lưu" để gỡ khỏi danh sách.</p>
+    </div>
+    <a class="btn btn--primary" href="/restaurants">Xem tất cả quán</a>
+  </div>
+
+  <% if (restaurants.length === 0) { %>
+    <section class="empty">
+      <h2>Bạn chưa lưu quán nào</h2>
+      <p>Khám phá các quán ăn tại Đà Nẵng và bấm "Lưu" cho quán bạn thích nhé.</p>
+      <a class="btn btn--primary" href="/restaurants">Khám phá quán Đà Nẵng</a>
+    </section>
+  <% } else { %>
+    <div class="rest-grid">
+      <% restaurants.forEach(function (r) { %>
+        <%- include('partials/restaurant-card', { r: r }) %>
+      <% }) %>
+    </div>
+  <% } %>
+</main>
+
+<%- include('partials/footer') %>

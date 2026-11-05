@@ -1,0 +1,397 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+<%- include('../partials/flash') %>
+
+<%
+  const maxCategoryCount = byCategory.reduce(function (m, c) { return Math.max(m, c.count); }, 0) || 1;
+  const barColors = ['bg-brand', 'bg-accent', 'bg-mint-500', 'bg-lilac-500', 'bg-butter-300'];
+  const tabs = [
+    { key: 'overview', label: '📊 Tổng quan' },
+    { key: 'users', label: '👥 Người dùng (' + stats.totalUsers + ')' },
+    { key: 'restaurants', label: '🏪 Quán ăn (' + stats.totalRestaurants + ')' }
+  ];
+  const formatDate = function (d) { return d ? new Date(d).toLocaleDateString('vi-VN') : '—'; };
+  const cuisineLabels = {
+    viet: 'Việt Nam',
+    nhat: 'Nhật Bản',
+    han: 'Hàn Quốc',
+    trung: 'Trung Hoa',
+    thai: 'Thái Lan',
+    y: 'Ý'
+  };
+%>
+
+<main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-8 space-y-6">
+  <!-- Tiêu đề -->
+  <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+    <div>
+      <p class="text-sm font-extrabold text-accent">🛠️ Khu vực Quản trị viên</p>
+      <h1 class="text-3xl sm:text-4xl font-black text-ink font-display">Admin Dashboard</h1>
+      <p class="text-muted mt-1">Quản lý người dùng, quán ăn và theo dõi số liệu của Hôm Nay Ăn Gì?</p>
+    </div>
+    <button type="button" data-open-restaurant-modal class="self-start px-5 py-3 rounded-2xl btn-accent font-black shadow-soft transition">
+      ➕ Thêm quán mới
+    </button>
+  </div>
+
+  <!-- Stats cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="bg-surface rounded-2xl border border-line shadow-card p-5">
+      <div class="flex items-center justify-between">
+        <p class="text-xs font-extrabold text-muted uppercase tracking-wide">Tổng người dùng</p>
+        <span class="w-10 h-10 rounded-2xl bg-line/40 flex items-center justify-center text-xl">👥</span>
+      </div>
+      <p class="mt-2 text-4xl font-black text-ink"><%= stats.totalUsers %></p>
+    </div>
+    <div class="bg-surface rounded-2xl border border-line shadow-card p-5">
+      <div class="flex items-center justify-between">
+        <p class="text-xs font-extrabold text-muted uppercase tracking-wide">Tổng quán ăn</p>
+        <span class="w-10 h-10 rounded-2xl bg-line/40 flex items-center justify-center text-xl">🏪</span>
+      </div>
+      <p class="mt-2 text-4xl font-black text-ink"><%= stats.totalRestaurants %></p>
+    </div>
+    <div class="bg-surface rounded-2xl border border-line shadow-card p-5">
+      <div class="flex items-center justify-between">
+        <p class="text-xs font-extrabold text-muted uppercase tracking-wide">Trạng thái</p>
+        <span class="w-10 h-10 rounded-2xl bg-mint-100 flex items-center justify-center text-xl">✅</span>
+      </div>
+      <p class="mt-2 text-xl sm:text-2xl font-black text-ink">Đang hoạt động</p>
+      <p class="mt-1 text-xs font-bold text-muted"><%= storageStatus %></p>
+      <p class="mt-2 text-xs text-muted">🛡️ <%= stats.totalAdmins %> Admin · 🔒 <%= stats.lockedUsers %> tài khoản bị khóa</p>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <nav class="flex gap-2 overflow-x-auto bg-surface rounded-2xl border border-line p-1.5 shadow-card" aria-label="Phân hệ quản trị">
+    <% tabs.forEach(function (t) { %>
+      <a href="/admin?tab=<%= t.key %>" class="shrink-0 px-4 py-2.5 rounded-xl text-sm font-black transition <%= tab === t.key ? 'btn-accent shadow-soft' : 'text-muted hover:text-ink hover:bg-line/40' %>" <%= tab === t.key ? 'aria-current=page' : '' %>><%= t.label %></a>
+    <% }) %>
+  </nav>
+
+  <% if (tab === 'overview') { %>
+  <!-- ================= TỔNG QUAN ================= -->
+  <section class="grid lg:grid-cols-5 gap-6">
+    <div class="lg:col-span-3 bg-surface rounded-2xl border border-line shadow-card p-6">
+      <h2 class="text-lg font-black text-ink font-display">🍱 Số quán theo danh mục</h2>
+      <p class="text-sm text-muted">Thống kê bằng MongoDB aggregate ($group theo category)</p>
+      <% if (byCategory.length === 0) { %>
+        <p class="mt-6 text-sm text-muted">Chưa có dữ liệu quán ăn.</p>
+      <% } else { %>
+        <ul class="mt-5 space-y-3">
+          <% byCategory.forEach(function (c, i) { %>
+            <li>
+              <div class="flex justify-between text-sm font-bold mb-1">
+                <span><%= categoryEmoji[c._id] || '🍽️' %> <%= c._id || 'Chưa phân loại' %></span>
+                <span class="text-muted"><%= c.count %> quán · ⭐ <%= Number(c.avgRating || 0).toFixed(1) %></span>
+              </div>
+              <div class="h-3 rounded-full bg-line/40 overflow-hidden">
+                <div class="h-full rounded-full <%= barColors[i % barColors.length] %>" style="width: <%= Math.round((c.count / maxCategoryCount) * 100) %>%"></div>
+              </div>
+            </li>
+          <% }) %>
+        </ul>
+      <% } %>
+    </div>
+
+    <div class="lg:col-span-2 bg-surface rounded-2xl border border-line shadow-card p-6">
+      <h2 class="text-lg font-black text-ink font-display">🆕 Người dùng mới</h2>
+      <ul class="mt-4 divide-y divide-line">
+        <% users.slice(0, 5).forEach(function (u) { %>
+          <li class="py-3 flex items-center justify-between gap-3">
+            <div class="min-w-0">
+              <p class="font-extrabold text-ink truncate"><%= u.username %></p>
+              <p class="text-xs text-muted truncate"><%= u.email %></p>
+            </div>
+            <span class="shrink-0 text-xs font-bold text-muted"><%= formatDate(u.createdAt) %></span>
+          </li>
+        <% }) %>
+      </ul>
+      <a href="/admin?tab=users" class="inline-block mt-3 text-sm font-black text-accent hover:underline">Quản lý người dùng →</a>
+    </div>
+  </section>
+  <% } %>
+
+  <% if (tab === 'users') { %>
+  <!-- ================= QUẢN LÝ USER ================= -->
+  <section class="bg-surface rounded-2xl border border-line shadow-card p-4 sm:p-6">
+    <h2 class="text-lg font-black text-ink font-display">👥 Quản lý người dùng</h2>
+    <p class="text-sm text-muted">Đổi quyền, khóa/mở khóa hoặc xóa tài khoản. Bạn không thể thao tác lên chính mình.</p>
+
+    <div class="mt-5 overflow-x-auto">
+      <table class="w-full text-sm text-left">
+        <thead>
+          <tr class="text-xs uppercase text-muted border-b border-line">
+            <th class="py-3 px-3">Người dùng</th>
+            <th class="py-3 px-3">Vai trò</th>
+            <th class="py-3 px-3">Trạng thái</th>
+            <th class="py-3 px-3">Yêu thích</th>
+            <th class="py-3 px-3">Ngày tạo</th>
+            <th class="py-3 px-3 text-right">Thao tác</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-line">
+          <% users.forEach(function (u) { const isMe = String(u._id) === String(currentUser._id); %>
+            <tr class="hover:bg-line/20">
+              <td class="py-3 px-3">
+                <p class="font-extrabold text-ink"><%= u.username %> <%= isMe ? '(bạn)' : '' %></p>
+                <p class="text-xs text-muted"><%= u.email %></p>
+              </td>
+              <td class="py-3 px-3">
+                <% if (u.role === 'admin') { %>
+                  <span class="px-2.5 py-1 rounded-full bg-accent-soft text-accent text-xs font-black">🛡️ Admin</span>
+                <% } else { %>
+                  <span class="px-2.5 py-1 rounded-full bg-line/40 text-muted text-xs font-black">User</span>
+                <% } %>
+              </td>
+              <td class="py-3 px-3">
+                <% if (u.isActive) { %>
+                  <span class="px-2.5 py-1 rounded-full bg-line/40 text-ink text-xs font-black">● Hoạt động</span>
+                <% } else { %>
+                  <span class="px-2.5 py-1 rounded-full bg-brand/10 text-brand text-xs font-black">● Đã khóa</span>
+                <% } %>
+              </td>
+              <td class="py-3 px-3 font-bold text-muted">💖 <%= (u.favoriteRestaurants || []).length %></td>
+              <td class="py-3 px-3 text-muted"><%= formatDate(u.createdAt) %></td>
+              <td class="py-3 px-3">
+                <% if (isMe) { %>
+                  <p class="text-right text-xs text-muted italic">—</p>
+                <% } else { %>
+                  <div class="flex justify-end flex-wrap gap-2">
+                    <form action="/admin/users/<%= u._id %>/role" method="POST">
+                      <button type="submit" class="px-3 py-1.5 rounded-xl border border-line bg-surface hover:bg-line/30 text-xs font-black transition">
+                        <%= u.role === 'admin' ? '⬇️ Hạ User' : '⬆️ Lên Admin' %>
+                      </button>
+                    </form>
+                    <form action="/admin/users/<%= u._id %>/toggle-active" method="POST">
+                      <button type="submit" class="px-3 py-1.5 rounded-xl border border-line bg-surface hover:bg-line/30 text-xs font-black transition">
+                        <%= u.isActive ? '🔒 Khóa' : '🔓 Mở khóa' %>
+                      </button>
+                    </form>
+                    <form action="/admin/users/<%= u._id %>/delete" method="POST" data-confirm="Xóa tài khoản <%= u.username %>? Hành động này không thể hoàn tác.">
+                      <button type="submit" class="px-3 py-1.5 rounded-xl bg-brand/10 hover:bg-brand/20 text-brand text-xs font-black transition">🗑️ Xóa</button>
+                    </form>
+                  </div>
+                <% } %>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <% } %>
+
+  <% if (tab === 'restaurants') { %>
+  <!-- ================= QUẢN LÝ QUÁN ĂN ================= -->
+  <section class="bg-surface rounded-2xl border border-line shadow-card p-4 sm:p-6">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div>
+        <h2 class="text-lg font-black text-ink font-display">🏪 Quản lý quán ăn</h2>
+        <p class="text-sm text-muted">Thêm, sửa, xóa quán. Quán sẽ xuất hiện ngay trong máy quay ở trang chủ.</p>
+      </div>
+      <button type="button" data-open-restaurant-modal class="self-start px-4 py-2.5 rounded-2xl btn-accent text-sm font-black transition">➕ Thêm quán</button>
+    </div>
+
+    <div class="mt-5">
+      <label class="mb-3 block max-w-sm">
+        <span class="sr-only">Tìm kiếm quán ăn</span>
+        <input id="restaurant-search" type="search" placeholder="🔎 Tìm theo tên, địa chỉ, phân loại..."
+          class="w-full px-4 py-2.5 rounded-2xl border border-line bg-bg text-ink text-sm font-semibold focus:outline-none focus:border-accent">
+      </label>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm text-left">
+        <thead>
+          <tr class="text-xs uppercase text-muted border-b border-line">
+            <th class="py-3 px-3">Quán</th>
+            <th class="py-3 px-3">Phân loại & Ẩm thực</th>
+            <th class="py-3 px-3">Buổi ăn</th>
+            <th class="py-3 px-3">Giá</th>
+            <th class="py-3 px-3">Đánh giá</th>
+            <th class="py-3 px-3 text-right">Thao tác</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-line">
+          <% if (restaurants.length === 0) { %>
+            <tr><td colspan="6" class="py-8 text-center text-muted">Chưa có quán nào. Bấm “Thêm quán” để bắt đầu.</td></tr>
+          <% } %>
+          <% restaurants.forEach(function (r) { %>
+            <tr class="hover:bg-line/20 align-top" data-restaurant-row>
+              <td class="py-3 px-3">
+                <div class="flex gap-3">
+                  <div class="w-14 h-14 shrink-0 rounded-xl bg-line/30 overflow-hidden flex items-center justify-center text-2xl">
+                    <% if (r.image) { %><img src="<%= r.image %>" alt="" class="w-full h-full object-cover" loading="lazy" data-fallback-emoji="<%= categoryEmoji[r.category] || '🍽️' %>"><% } else { %><%= categoryEmoji[r.category] || '🍽️' %><% } %>
+                  </div>
+                  <div class="min-w-0">
+                    <p class="font-extrabold text-ink flex items-center gap-1.5 flex-wrap">
+                      <span><%= r.name %></span>
+                      <% if (r.isPreferred !== false) { %>
+                        <span class="px-1.5 py-0.5 rounded bg-orange-500 text-white text-[10px] font-bold">👍 Yêu thích+</span>
+                      <% } %>
+                    </p>
+                    <p class="text-xs text-muted"><%= r.address %></p>
+                    <p class="text-[11px] font-bold text-rose-600 mt-0.5">
+                      🎟️ <%= r.promoTag || 'Freeship 15k' %> · 🕒 <%= r.deliveryTime || '15 phút' %> (<%= r.distance || '1.2 km' %>) · 🍽️ <%= (r.menu || []).length %> món
+                    </p>
+                    <a href="<%= r.mapUrl %>" target="_blank" rel="noopener noreferrer" class="text-xs font-bold text-accent hover:underline">🗺️ Google Maps ↗</a>
+                  </div>
+                </div>
+              </td>
+              <td class="py-3 px-3">
+                <span class="inline-block px-2.5 py-1 rounded-full bg-accent-soft text-accent text-xs font-black whitespace-nowrap">
+                  <%= categoryEmoji[r.category] || '' %> <%= r.category %>
+                </span>
+                <span class="block text-[11px] text-muted font-bold mt-1">
+                  Ẩm thực: <%= cuisineLabels[r.cuisine] || 'Việt Nam' %>
+                </span>
+              </td>
+              <td class="py-3 px-3">
+                <div class="flex flex-wrap gap-1">
+                  <% (r.mealTime || []).forEach(function (m) { %>
+                    <span class="px-2 py-0.5 rounded-full bg-line/40 text-[11px] font-bold text-ink"><%= m %></span>
+                  <% }) %>
+                </div>
+              </td>
+              <td class="py-3 px-3 text-muted whitespace-nowrap"><%= r.priceRange || '—' %></td>
+              <td class="py-3 px-3 font-bold text-accent whitespace-nowrap">⭐ <%= Number(r.rating || 0).toFixed(1) %></td>
+              <td class="py-3 px-3">
+                <div class="flex justify-end gap-2">
+                  <button type="button" class="px-3 py-1.5 rounded-xl border border-line bg-surface hover:bg-line/30 text-ink text-xs font-black transition"
+                    data-edit-restaurant="<%= JSON.stringify({ _id: r._id, name: r.name, address: r.address, district: r.district || 'Hải Châu', category: r.category, cuisine: r.cuisine || 'viet', mealTime: r.mealTime, priceRange: r.priceRange, promoTag: r.promoTag || 'Freeship 15k', deliveryTime: r.deliveryTime || '15 phút', distance: r.distance || '1.2 km', reviewCount: r.reviewCount || '999+', openingHours: r.openingHours || '06:30 - 22:00', isPreferred: r.isPreferred !== false, mapUrl: r.mapUrl, image: r.image, rating: r.rating, menu: r.menu || [] }) %>">
+                    ✏️ Sửa
+                  </button>
+                  <form action="/admin/restaurants/<%= r._id %>/delete" method="POST" data-confirm="Xóa quán “<%= r.name %>”?">
+                    <button type="submit" class="px-3 py-1.5 rounded-xl bg-brand/10 hover:bg-brand/20 text-brand text-xs font-black transition">🗑️ Xóa</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <% } %>
+</main>
+
+<!-- ================= MODAL THÊM / SỬA QUÁN ================= -->
+<dialog id="restaurant-modal" class="w-[min(680px,calc(100%-2rem))] rounded-[2rem] p-0 bg-surface text-ink shadow-soft border border-line">
+  <form id="restaurant-form" action="/admin/restaurants" method="POST" class="p-6 sm:p-7 space-y-4">
+    <div class="flex items-start justify-between gap-4">
+      <div>
+        <h2 id="restaurant-modal-title" class="text-xl font-black text-ink font-display">➕ Thêm quán mới</h2>
+        <p class="text-sm text-muted">Các trường có dấu * là bắt buộc.</p>
+      </div>
+      <button type="button" data-close-modal class="px-3 py-1.5 rounded-xl bg-line/40 hover:bg-line text-ink font-black text-sm" aria-label="Đóng">✕</button>
+    </div>
+
+    <div class="grid sm:grid-cols-2 gap-4">
+      <label class="block sm:col-span-2">
+        <span class="block text-xs font-extrabold text-muted mb-1">Tên quán / món ăn *</span>
+        <input type="text" name="name" required maxlength="120" placeholder="VD: Mì Quảng Bà Mua"
+          class="w-full px-4 py-2.5 rounded-2xl border border-line bg-bg text-ink font-semibold focus:outline-none focus:border-accent">
+      </label>
+      <label class="block sm:col-span-2">
+        <span class="block text-xs font-extrabold text-muted mb-1">Địa chỉ tại Đà Nẵng *</span>
+        <input type="text" name="address" required placeholder="VD: 19 Trần Bình Trọng, Hải Châu, Đà Nẵng"
+          class="w-full px-4 py-2.5 rounded-2xl border border-line bg-bg text-ink font-semibold focus:outline-none focus:border-accent">
+      </label>
+      <label class="block">
+        <span class="block text-xs font-extrabold text-muted mb-1">Phân loại món</span>
+        <select name="category" class="w-full px-4 py-2.5 rounded-2xl border border-line bg-bg text-ink font-semibold focus:outline-none focus:border-accent">
+          <% categories.forEach(function (c) { %>
+            <option value="<%= c %>"><%= categoryEmoji[c] %> <%= c %></option>
+          <% }) %>
+        </select>
+      </label>
+      <label class="block">
+        <span class="block text-xs font-extrabold text-muted mb-1">Nền ẩm thực (Màu chủ đề)</span>
+        <select name="cuisine" class="w-full px-4 py-2.5 rounded-2xl border border-line bg-bg text-ink font-semibold focus:outline-none focus:border-accent">
+          <option value="viet">Việt Nam (Hồng sen)</option>
+          <option value="nhat">Nhật Bản (Xanh chàm)</option>
+          <option value="han">Hàn Quốc (Đỏ ớt)</option>
+          <option value="trung">Trung Hoa (Vàng hổ phách)</option>
+          <option value="thai">Thái Lan (Tím hoa đậu biếc)</option>
+          <option value="y">Ý (Xanh húng quế)</option>
+        </select>
+      </label>
+      <label class="block">
+        <span class="block text-xs font-extrabold text-muted mb-1">Khoảng giá</span>
+        <input type="text" name="priceRange" placeholder="VD: 25.000đ - 50.000đ"
+          class="w-full px-4 py-2.5 rounded-2xl border border-line bg-bg text-ink font-semibold focus:outline-none focus:border-accent">
+      </label>
+      <label class="block">
+        <span class="block text-xs font-extrabold text-muted mb-1">Quận / Khu vực Đà Nẵng</span>
+        <input type="text" name="district" value="Hải Châu" placeholder="VD: Hải Châu, Thanh Khê, Sơn Trà..."
+          class="w-full px-4 py-2.5 rounded-2xl border border-line bg-bg text-ink font-semibold focus:outline-none focus:border-accent">
+      </label>
+      <label class="block">
+        <span class="block text-xs font-extrabold text-muted mb-1">Mã ưu đãi (Promo Tag Grab/Shopee)</span>
+        <input type="text" name="promoTag" value="Giảm 20% • Freeship" placeholder="VD: Giảm 20% • Freeship"
+          class="w-full px-4 py-2.5 rounded-2xl border border-line bg-bg text-ink font-semibold focus:outline-none focus:border-accent">
+      </label>
+      <label class="block">
+        <span class="block text-xs font-extrabold text-muted mb-1">Thời gian giao & Khoảng cách</span>
+        <div class="grid grid-cols-2 gap-2">
+          <input type="text" name="deliveryTime" value="15 phút" placeholder="15 phút"
+            class="w-full px-3 py-2.5 rounded-2xl border border-line bg-bg text-ink text-sm font-semibold focus:outline-none focus:border-accent">
+          <input type="text" name="distance" value="1.2 km" placeholder="1.2 km"
+            class="w-full px-3 py-2.5 rounded-2xl border border-line bg-bg text-ink text-sm font-semibold focus:outline-none focus:border-accent">
+        </div>
+      </label>
+      <label class="block">
+        <span class="block text-xs font-extrabold text-muted mb-1">Lượt đánh giá & Giờ mở cửa</span>
+        <div class="grid grid-cols-2 gap-2">
+          <input type="text" name="reviewCount" value="999+" placeholder="999+"
+            class="w-full px-3 py-2.5 rounded-2xl border border-line bg-bg text-ink text-sm font-semibold focus:outline-none focus:border-accent">
+          <input type="text" name="openingHours" value="06:30 - 22:00" placeholder="06:30 - 22:00"
+            class="w-full px-3 py-2.5 rounded-2xl border border-line bg-bg text-ink text-sm font-semibold focus:outline-none focus:border-accent">
+        </div>
+      </label>
+      <label class="inline-flex items-center gap-2 sm:col-span-2 px-3.5 py-2.5 rounded-2xl border border-line bg-bg text-sm font-bold cursor-pointer">
+        <input type="checkbox" name="isPreferred" checked class="accent-accent w-4 h-4">
+        <span>ắn nhãn <strong class="text-orange-600">👍 Yêu thích+ (ShopeeFood / GrabFood Partner)</strong></span>
+      </label>
+
+      <fieldset class="sm:col-span-2">
+        <legend class="text-xs font-extrabold text-muted mb-1.5">Buổi ăn phù hợp</legend>
+        <div class="flex flex-wrap gap-2">
+          <% mealTimes.forEach(function (m) { %>
+            <label class="inline-flex items-center gap-2 px-3 py-2 rounded-2xl border border-line bg-surface text-sm font-bold cursor-pointer hover:border-accent">
+              <input type="checkbox" name="mealTime" value="<%= m %>" class="accent-accent"> <%= m %>
+            </label>
+          <% }) %>
+        </div>
+      </fieldset>
+
+      <label class="block">
+        <span class="block text-xs font-extrabold text-muted mb-1">Đánh giá (0 - 5)</span>
+        <input type="number" name="rating" min="0" max="5" step="0.1" value="4.5"
+          class="w-full px-4 py-2.5 rounded-2xl border border-line bg-bg text-ink font-semibold focus:outline-none focus:border-accent">
+      </label>
+      <label class="block">
+        <span class="block text-xs font-extrabold text-muted mb-1">Link ảnh (URL)</span>
+        <input type="url" name="image" placeholder="https://..."
+          class="w-full px-4 py-2.5 rounded-2xl border border-line bg-bg text-ink font-semibold focus:outline-none focus:border-accent">
+      </label>
+      <label class="block sm:col-span-2">
+        <span class="block text-xs font-extrabold text-muted mb-1">Link Google Maps (để trống sẽ tự tạo theo tên + địa chỉ)</span>
+        <input type="url" name="mapUrl" placeholder="https://maps.app.goo.gl/..."
+          class="w-full px-4 py-2.5 rounded-2xl border border-line bg-bg text-ink font-semibold focus:outline-none focus:border-accent">
+      </label>
+      <label class="block sm:col-span-2">
+        <span class="block text-xs font-extrabold text-muted mb-1">Thực đơn món ăn (Mỗi dòng 1 món: Tên món | Giá VNĐ | Mô tả | Bán chạy 1/0)</span>
+        <textarea name="menuText" rows="4" placeholder="Mì Quảng Đặc Biệt | 65000 | Đầy đủ tôm, thịt, trứng, chả | 1&#10;Mì Quảng Gà Ta | 50000 | Thịt gà ta dai ngon | 1"
+          class="w-full px-4 py-2.5 rounded-2xl border border-line bg-bg text-ink text-xs font-mono focus:outline-none focus:border-accent"></textarea>
+      </label>
+    </div>
+
+    <div class="flex justify-end gap-3 pt-2">
+      <button type="button" data-close-modal class="px-5 py-2.5 rounded-2xl bg-line/30 hover:bg-line text-ink font-black transition">Hủy</button>
+      <button type="submit" id="restaurant-submit" class="px-5 py-2.5 rounded-2xl btn-accent font-black shadow-soft transition">💾 Lưu quán</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="/js/admin.js"></script>
+<%- include('../partials/footer') %>

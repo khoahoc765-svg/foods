@@ -1,0 +1,188 @@
+/* =========================================================================
+   HỆ THỐNG MÀU CHUẨN — HÔM NAY ĂN GÌ?
+   Quy tắc 60 - 30 - 10:
+     - 60% Nền trung tính / kem (--bg)
+     - 30% Thẻ surface trắng (--surface)
+     - 10% Màu nhấn (--accent: cam ở trang chủ, đổi theo nền ẩm thực)
+   Độ tương phản WCAG AA (≥ 4.5 cho chữ thường)
+   Hỗ trợ chế độ tối tự động theo máy người dùng (prefers-color-scheme: dark)
+   ========================================================================= */
+
+:root {
+  color-scheme: light dark;
+
+  /* Nền trung tính để ảnh món ăn là màu chính của trang */
+  --bg:          #F3F3EF;
+  --surface:     #FBFBF9;
+  --ink:         #17181A;
+  --muted:       #585B62;
+  --line:        #DEDED8;
+  --on-accent:   #FBFBF9;
+
+  /* Màu cam thương hiệu: logo, nút chính ở Trang chủ */
+  --brand:       #C2410C;
+
+  /* 6 màu nhấn đại diện cho 6 nền ẩm thực */
+  --c-viet:      #B02A5B; /* hồng sen */
+  --c-nhat:      #2C4A7C; /* xanh chàm */
+  --c-han:       #B3261E; /* đỏ tương ớt gochujang */
+  --c-trung:     #9A5B00; /* vàng hổ phách */
+  --c-thai:      #6A3D9A; /* tím hoa đậu biếc */
+  --c-y:         #2E7D4F; /* xanh húng quế */
+
+  /* Màu nhấn mặc định là màu cam thương hiệu */
+  --accent:      var(--brand);
+  --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--bg));
+}
+
+/* Chế độ tối: tự động theo cài đặt của máy người dùng */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:        #131416;
+    --surface:   #1C1D20;
+    --ink:       #F2F2EE;
+    --muted:     #A9ABB2;
+    --line:      #2E3035;
+    --on-accent: #131416;
+
+    /* Cam thương hiệu và 6 màu nhấn sáng hơn để đạt độ tương phản WCAG trên nền tối */
+    --brand:     #FF8F54;
+    --c-viet:    #F583A8;
+    --c-nhat:    #94B4F0;
+    --c-han:     #FF8E80;
+    --c-trung:   #E8AE44;
+    --c-thai:    #C3A4EE;
+    --c-y:       #63CF92;
+  }
+}
+
+/* Đổi chủ đề màu nhấn theo nền ẩm thực: chỉ cần gắn data-cuisine="..." lên <body> hoặc lên thẻ */
+[data-cuisine="viet"]  { --accent: var(--c-viet); }
+[data-cuisine="nhat"]  { --accent: var(--c-nhat); }
+[data-cuisine="han"]   { --accent: var(--c-han); }
+[data-cuisine="trung"] { --accent: var(--c-trung); }
+[data-cuisine="thai"]  { --accent: var(--c-thai); }
+[data-cuisine="y"]     { --accent: var(--c-y); }
+
+:root, [data-cuisine] {
+  --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--bg));
+}
+
+/* Thiết lập màu cơ sở toàn trang */
+body {
+  background-color: var(--bg);
+  color: var(--ink);
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+/* =========================================================================
+   CÁC THÀNH PHẦN GIAO DIỆN & TIỆN ÍCH
+   ========================================================================= */
+
+/* Nút bấm chuẩn với màu nhấn thương hiệu / ẩm thực */
+.btn-accent {
+  background-color: var(--accent);
+  color: var(--on-accent);
+  transition: all 0.2s ease;
+}
+.btn-accent:hover {
+  filter: brightness(0.92);
+  transform: translateY(-1px);
+}
+.btn-accent:active {
+  transform: translateY(1px);
+}
+
+.text-accent {
+  color: var(--accent);
+}
+
+.border-accent {
+  border-color: var(--accent);
+}
+
+.bg-accent-soft {
+  background-color: var(--accent-soft);
+}
+
+/* Khung máy quay chọn món (Slot Machine) */
+.slot-window {
+  --row: 64px;
+  position: relative;
+  height: calc(var(--row) * 3);
+  overflow: hidden;
+  border-radius: 1.25rem;
+  background: var(--surface);
+  border: 2px solid var(--line);
+}
+
+/* Khung chọn ở hàng giữa */
+.slot-window::after {
+  content: "";
+  position: absolute;
+  left: 0.5rem;
+  right: 0.5rem;
+  top: var(--row);
+  height: var(--row);
+  border-radius: 1rem;
+  border: 2.5px dashed var(--accent);
+  background: var(--accent-soft);
+  pointer-events: none;
+  transition: border-color 0.3s ease;
+}
+
+/* Làm mờ hàng trên & dưới */
+.slot-window::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, var(--surface) 0%, transparent 35%, transparent 65%, var(--surface) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.slot-strip {
+  will-change: transform;
+}
+
+.slot-strip li {
+  height: var(--row);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1rem;
+  font-weight: 800;
+  font-size: 1.15rem;
+  text-align: center;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Hiệu ứng Pop-in */
+@keyframes pop-in {
+  0% { transform: scale(0.94); opacity: 0; }
+  60% { transform: scale(1.02); opacity: 1; }
+  100% { transform: scale(1); }
+}
+.animate-pop { animation: pop-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-6deg); }
+  75% { transform: rotate(6deg); }
+}
+.animate-wiggle { animation: wiggle 0.4s ease-in-out 2; }
+
+dialog::backdrop {
+  background: rgba(19, 20, 22, 0.65);
+  backdrop-filter: blur(4px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

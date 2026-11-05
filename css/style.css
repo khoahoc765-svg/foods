@@ -452,3 +452,426 @@ body[data-cuisine] { background: var(--soft); }
   *, *::before, *::after { animation: none !important; transition: none !important; }
   .reel { transform: translateY(var(--end)); }
 }
+
+/* ---------- Quán ăn Đà Nẵng (GrabFood / ShopeeFood theo chuẩn UI gốc) ---------- */
+.rest-section {
+  margin-top: clamp(2.5rem, 5vw, 4rem);
+  padding-top: clamp(2rem, 4vw, 3rem);
+  border-top: 1px solid var(--line);
+}
+
+.rest-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.rest-grid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: clamp(1rem, 2.5vw, 1.5rem);
+  margin-top: clamp(1.5rem, 3vw, 2rem);
+}
+@media (min-width: 640px) { .rest-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1024px) { .rest-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+.rest-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 2px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--surface);
+  transition: transform .25s var(--ease);
+}
+.rest-card:hover { transform: translateY(-3px); }
+
+.rest-card__photo {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: var(--line);
+}
+.rest-card__photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform .6s var(--ease);
+}
+.rest-card:hover .rest-card__photo img { transform: scale(1.05); }
+
+.rest-badge {
+  position: absolute;
+  top: .75rem;
+  left: .75rem;
+  padding: .35rem .75rem;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font: 700 .75rem/1 var(--font-body);
+}
+
+.rest-fav-btn {
+  position: absolute;
+  top: .75rem;
+  right: .75rem;
+  min-height: 36px;
+  padding: .25rem .75rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font: 700 .75rem/1 var(--font-body);
+  cursor: pointer;
+}
+.rest-fav-btn[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.rest-meta-pill {
+  position: absolute;
+  right: .75rem;
+  bottom: .75rem;
+  padding: .35rem .75rem;
+  border-radius: 999px;
+  background: rgb(23 24 26 / 84%);
+  color: #FBFBF9;
+  font: 500 .75rem/1 var(--font-body);
+}
+
+.rest-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  padding: 1rem 1.25rem 1.25rem;
+  flex: 1;
+}
+
+.rest-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  color: var(--muted);
+  font-size: .875rem;
+}
+.rest-card__cat { color: var(--accent); font-weight: 700; }
+.rest-card__rating { color: var(--ink); font-weight: 700; }
+.rest-card__rating span { color: var(--muted); font-weight: 400; }
+
+.rest-card__name {
+  color: var(--ink);
+  font: 800 1.35rem/1.15 var(--font-display);
+  letter-spacing: -.02em;
+}
+.rest-card__addr {
+  color: var(--muted);
+  font-size: .875rem;
+  line-height: 1.4;
+}
+
+.rest-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .375rem;
+  margin-top: .125rem;
+}
+.rest-tag {
+  padding: .25rem .625rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--muted);
+  font-size: .8125rem;
+  font-weight: 500;
+}
+.rest-tag--promo {
+  border-color: var(--accent);
+  background: var(--soft);
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.rest-menu-preview {
+  display: grid;
+  gap: .35rem;
+  margin-top: .5rem;
+  padding-top: .625rem;
+  border-top: 1px solid var(--line);
+  font-size: .875rem;
+}
+.rest-menu-preview__title {
+  color: var(--muted);
+  font-size: .75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.rest-menu-preview__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: .75rem;
+}
+.rest-menu-preview__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rest-menu-preview__price {
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.rest-card__actions {
+  display: flex;
+  gap: .5rem;
+  margin-top: auto;
+  padding-top: .875rem;
+}
+.rest-card__actions .btn {
+  flex: 1;
+  min-height: 44px;
+  padding-inline: .875rem;
+  font-size: .9375rem;
+}
+
+/* ---------- Hộp thoại Thực đơn (dùng chung kiểu .slot) ---------- */
+.menu-dialog {
+  width: min(640px, 100% - 2rem);
+  max-height: calc(100dvh - 2rem);
+}
+.menu-dialog__list {
+  display: grid;
+  gap: .75rem;
+  max-height: 48dvh;
+  overflow-y: auto;
+  padding-block: .25rem;
+}
+.menu-item {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr) auto;
+  gap: .875rem;
+  align-items: center;
+  padding: .75rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+}
+.menu-item img {
+  width: 76px;
+  height: 76px;
+  object-fit: cover;
+  border-radius: 12px;
+  background: var(--line);
+}
+.menu-item__badge {
+  display: inline-block;
+  margin-bottom: .25rem;
+  padding: .15rem .5rem;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: .6875rem;
+  font-weight: 700;
+}
+.menu-item__name {
+  font: 800 1.0625rem/1.2 var(--font-display);
+}
+.menu-item__desc {
+  margin-top: .125rem;
+  color: var(--muted);
+  font-size: .8125rem;
+  line-height: 1.35;
+}
+.menu-item__price {
+  margin-top: .25rem;
+  color: var(--accent);
+  font: 800 .9375rem/1.2 var(--font-display);
+}
+.menu-item__qty {
+  display: flex;
+  align-items: center;
+  gap: .375rem;
+}
+.menu-item__qty .btn {
+  min-height: 36px;
+  min-width: 36px;
+  padding: 0 .625rem;
+}
+.menu-dialog__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: .75rem;
+  border-top: 1px solid var(--line);
+}
+
+.rest-header__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .75rem;
+}
+
+.rest-dish-context {
+  margin-top: .75rem;
+  padding: .75rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--muted);
+}
+
+.rest-dish-context strong {
+  color: var(--ink);
+}
+
+.rest-dish-context__link {
+  display: inline-block;
+  margin-left: .5rem;
+  color: var(--accent);
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.cart-count {
+  display: inline-flex;
+  min-width: 1.4rem;
+  height: 1.4rem;
+  align-items: center;
+  justify-content: center;
+  margin-left: .25rem;
+  padding-inline: .35rem;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: .75rem;
+  line-height: 1;
+}
+.cart-count[hidden] { display: none; }
+
+.cart-page { max-width: 900px; }
+.cart-message { margin-top: 1rem; color: var(--accent); font-weight: 700; }
+.cart-empty {
+  display: grid;
+  justify-items: center;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding: clamp(2rem, 6vw, 4rem);
+  border: 1px solid var(--line);
+  border-radius: calc(var(--radius) * 1.5);
+  background: var(--surface);
+  text-align: center;
+}
+.cart-empty > span { font-size: 3rem; }
+.cart-empty p { color: var(--muted); }
+.cart-list { display: grid; gap: .875rem; margin-top: 2rem; }
+.cart-item {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: start;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.cart-item__image {
+  width: 96px;
+  height: 96px;
+  border-radius: 12px;
+  background: var(--line);
+  object-fit: cover;
+}
+.cart-item__details { min-width: 0; }
+.cart-item__restaurant, .cart-item__address { color: var(--muted); font-size: .875rem; }
+.cart-item__details h2 { margin-top: .2rem; font-size: 1.25rem; }
+.cart-item__price { margin-top: .3rem; color: var(--accent); font-weight: 800; }
+.cart-item__subtotal { white-space: nowrap; color: var(--ink); }
+.cart-item__actions { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; margin-top: .75rem; }
+.cart-quantity { display: inline-flex; align-items: center; gap: .75rem; }
+.cart-quantity button {
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--bg);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+.cart-map, .cart-remove { border: 0; background: none; color: var(--accent); font: inherit; font-size: .875rem; font-weight: 700; cursor: pointer; }
+.cart-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding: 1.25rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.cart-summary__label { font-weight: 800; }
+.cart-summary__note { color: var(--muted); font-size: .8125rem; }
+.cart-summary > strong { color: var(--accent); font-size: 1.5rem; }
+
+.recipe-layout { margin-top: 1.5rem; }
+.recipe-search { display: grid; gap: .5rem; max-width: 32rem; margin-bottom: 1.25rem; font-weight: 700; }
+.recipe-search input {
+  width: 100%;
+  min-height: 48px;
+  padding: .65rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+}
+.recipe-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 1rem; }
+.recipe-card {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  text-decoration: none;
+  transition: transform .2s var(--ease), border-color .2s;
+}
+.recipe-card:hover { transform: translateY(-3px); border-color: var(--accent); }
+.recipe-card img { width: 100%; aspect-ratio: 3 / 2; object-fit: cover; background: var(--line); }
+.recipe-card > div { padding: 1rem; }
+.recipe-card span, .recipe-meta { color: var(--accent); font-size: .8125rem; font-weight: 700; }
+.recipe-card h2 { margin-top: .35rem; font-size: 1.25rem; }
+.recipe-card p { margin-top: .35rem; color: var(--muted); font-size: .875rem; }
+.recipe-detail {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: calc(var(--radius) * 1.5);
+  background: var(--surface);
+}
+.recipe-detail__image { width: 100%; max-height: 420px; object-fit: cover; background: var(--line); }
+.recipe-detail__body { display: grid; gap: 1rem; padding: clamp(1.25rem, 4vw, 2.5rem); }
+.recipe-detail__body h2 { margin-top: .5rem; font-size: 1.5rem; }
+.recipe-ingredients, .recipe-steps { display: grid; gap: .65rem; padding-left: 1.5rem; }
+.recipe-ingredients { list-style: disc; }
+.recipe-steps { list-style: decimal; }
+.recipe-ingredients li, .recipe-steps li { padding-left: .25rem; }
+.recipe-tip { padding: 1rem; border-radius: var(--radius); background: var(--soft); }
+.recipe-actions { display: flex; flex-wrap: wrap; gap: .75rem; }
+
+@media (max-width: 560px) {
+  .cart-item { grid-template-columns: 72px minmax(0, 1fr); gap: .75rem; }
+  .cart-item__image { width: 72px; height: 72px; }
+  .cart-item__subtotal { grid-column: 2; }
+}

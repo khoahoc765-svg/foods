@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>403 - Không có quyền truy cập | Hôm Nay Ăn Gì</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-rose-50/40 min-h-screen font-sans text-slate-700 flex items-center justify-center p-4">
+  <div class="bg-white max-w-md w-full rounded-2xl shadow-sm border border-rose-100 p-8 text-center space-y-5">
+    <div class="w-16 h-16 bg-rose-100 text-rose-500 rounded-2xl flex items-center justify-center text-3xl mx-auto">
+      🔒
+    </div>
+    <h1 class="text-xl font-bold text-slate-800">Truy cập bị từ chối (403)</h1>
+    <p class="text-sm text-slate-500"><%= message %></p>
+
+    <% if (!currentUser) { %>
+      <div class="bg-amber-50 border border-amber-100 rounded-xl p-3 text-xs text-amber-700">
+        Bạn chưa đăng nhập. Vui lòng đăng nhập bằng tài khoản <strong>Admin</strong> để tiếp tục.
+      </div>
+    <% } %>
+
+    <div class="flex flex-col sm:flex-row gap-3 justify-center pt-2">
+      <a href="/login" class="bg-rose-400 hover:bg-rose-500 text-white font-medium py-2.5 px-5 rounded-xl text-sm transition">
+        Đăng nhập Admin
+      </a>
+      <a href="/" class="bg-slate-100 hover:bg-slate-200 text-slate-600 font-medium py-2.5 px-5 rounded-xl text-sm transition">
+        Về trang chủ
+      </a>
+    </div>
+  </div>
+</body>
+</html>

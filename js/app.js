@@ -37,7 +37,7 @@ const App = (() => {
     `https://images.unsplash.com/${dish.photo}?auto=format&fit=crop&w=${w}&h=${h}&q=70${dish.crop || ''}`;
   const dishUrl = (dish) => `result.html?dish=${dish.id}`;
   const mapsUrl = (dish) =>
-    'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(`${dish.name} gần đây`);
+    'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(`${dish.name} ngon tại Đà Nẵng`);
 
   function renderChrome() {
     const page = location.pathname.split('/').pop();
@@ -46,7 +46,7 @@ const App = (() => {
       <a class="logo" href="index.html">Hôm nay ăn gì?</a>
       <button class="btn nav-toggle" type="button" aria-expanded="false" aria-controls="nav">Menu</button>
       <nav class="nav" id="nav" aria-label="Menu chính">
-        <ul>${NAV.map((n) => `<li><a href="${n.href}"${n.href === page ? ' aria-current="page"' : ''}>${n.label}</a></li>`).join('')}</ul>
+        <ul id="nav-list">${NAV.map((n) => `<li><a href="${n.href}"${n.href === page ? ' aria-current="page"' : ''}>${n.label}</a></li>`).join('')}</ul>
       </nav>`;
     const toggle = header.querySelector('.nav-toggle');
     toggle.addEventListener('click', () => {
@@ -54,6 +54,23 @@ const App = (() => {
       toggle.setAttribute('aria-expanded', open);
       toggle.textContent = open ? 'Đóng' : 'Menu';
     });
+
+    // Kiểm tra trạng thái đăng nhập từ backend để hiện nút Admin / Đăng nhập
+    fetch('/api/me')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        const navList = document.getElementById('nav-list');
+        if (!navList || !data) return;
+        if (data.user) {
+          if (data.user.role === 'admin') {
+            navList.insertAdjacentHTML('beforeend', `<li><a href="/admin" style="color:#e11d48;font-weight:700;">⚙️ Admin Dashboard</a></li>`);
+          }
+          navList.insertAdjacentHTML('beforeend', `<li><a href="/logout">Đăng xuất (${data.user.username})</a></li>`);
+        } else {
+          navList.insertAdjacentHTML('beforeend', `<li><a href="/login">Đăng nhập</a></li>`);
+        }
+      })
+      .catch(() => {});
   }
 
   renderChrome();

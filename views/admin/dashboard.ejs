@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Control Center — Hôm Nay Ăn Gì</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Be Vietnam Pro', sans-serif; }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+    .sidebar-btn.active {
+      background: linear-gradient(135deg, #e11d48 0%, #f43f5e 100%);
+      color: #fff;
+      box-shadow: 0 8px 20px -6px rgba(225, 29, 72, 0.5);
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col lg:flex-row">
+
+  <%
+    const dishMap = {};
+    (allDishes || []).forEach(d => { dishMap[d.id] = d.name; });
+    const formatVND = (n) => Number(n || 0).toLocaleString('vi-VN') + 'đ';
+  %>
+
+  <!-- SIDEBAR ĐIỀU HƯỚNG CHUYÊN NGHIỆP -->
+  <aside class="w-full lg:w-72 bg-slate-900 text-slate-200 flex-shrink-0 flex flex-col justify-between lg:min-h-screen">
+    <div>
+      <!-- Logo & Brand -->
+      <div class="p-6 border-b border-slate-800 flex items-center justify-between">
+        <a href="/" class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-rose-500 flex items-center justify-center text-xl shadow-lg shadow-rose-500/30">
+            🍜
+          </div>
+          <div>
+            <span class="font-extrabold text-white text-lg tracking-tight block leading-none">Hôm Nay Ăn Gì</span>
+            <span class="text-xs text-rose-400 font-semibold uppercase tracking-wider">Admin Portal v2.0</span>
+          </div>
+        </a>
+      </div>
+
+      <!-- Menu chính -->
+      <div class="p-4 space-y-1.5">
+        <p class="px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-slate-500">Quản trị hệ thống</p>
+
+        <button type="button" data-target="overview" class="sidebar-btn w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold text-slate-300 hover:bg-slate-800/80 transition">
+          <span class="flex items-center gap-3"><span>📊</span> Tổng quan & Số liệu</span>
+        </button>
+
+        <button type="button" data-target="restaurants" class="sidebar-btn w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold text-slate-300 hover:bg-slate-800/80 transition">
+          <span class="flex items-center gap-3"><span>🏪</span> Quán ăn & Đối tác</span>
+          <span class="px-2 py-0.5 text-xs rounded-full bg-slate-800 text-slate-300"><%= totalRestaurants %></span>
+        </button>
+
+        <button type="button" data-target="orders" class="sidebar-btn w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold text-slate-300 hover:bg-slate-800/80 transition">
+          <span class="flex items-center gap-3"><span>🛵</span> Đơn đặt & Shipper</span>
+          <span class="px-2 py-0.5 text-xs rounded-full bg-amber-500/20 text-amber-300"><%= totalOrders %></span>
+        </button>
+
+        <button type="button" data-target="recipes" class="sidebar-btn w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold text-slate-300 hover:bg-slate-800/80 transition">
+          <span class="flex items-center gap-3"><span>📖</span> Công thức nấu ăn</span>
+          <span class="px-2 py-0.5 text-xs rounded-full bg-slate-800 text-slate-300"><%= totalRecipes %></span>
+        </button>
+
+        <button type="button" data-target="shippers" class="sidebar-btn w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold text-slate-300 hover:bg-slate-800/80 transition">
+          <span class="flex items-center gap-3"><span>🚚</span> Đối tác Vận chuyển</span>
+          <span class="px-2 py-0.5 text-xs rounded-full bg-emerald-500/20 text-emerald-300"><%= totalShippers %></span>
+        </button>
+
+        <button type="button" data-target="users" class="sidebar-btn w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold text-slate-300 hover:bg-slate-800/80 transition">
+          <span class="flex items-center gap-3"><span>👥</span> Quản lý Người dùng</span>
+          <span class="px-2 py-0.5 text-xs rounded-full bg-slate-800 text-slate-300"><%= totalUsers %></span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Footer Sidebar -->
+    <div class="p-4 border-t border-slate-800 space-y-3">
+      <div class="bg-slate-800/70 rounded-xl p-3.5 flex items-center justify-between">
+        <div class="truncate">
+          <p class="text-xs text-slate-400">Đang đăng nhập:</p>
+          <p class="text-sm font-bold text-white truncate"><%= currentUser ? currentUser.username : 'Admin' %></p>
+        </div>
+        <span class="px-2.5 py-1 bg-rose-500/20 text-rose-400 rounded-lg text-xs font-bold">ADMIN</span>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <a href="/result.html?mode=any" class="text-center py-2 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs transition">
+          🎲 Test Quay Món
+        </a>
+        <a href="/logout" class="text-center py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs transition">
+          Đăng xuất
+        </a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- NỘI DUNG CHÍNH -->
+  <div class="flex-1 flex flex-col min-w-0">
+
+    <!-- Topbar -->
+    <header class="bg-white border-b border-slate-200 px-6 py-4 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-10">
+      <div>
+        <h1 class="text-xl font-extrabold text-slate-900">Trung tâm Quản trị & Điều phối Hôm Nay Ăn Gì</h1>
+        <p class="text-xs text-slate-500">Quản lý User, Quán đối tác hợp tác, Công thức món ăn và Liên kết Shipper đặt món trực tiếp</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <a href="/" class="px-4 py-2 rounded-xl border border-slate-200 hover:border-slate-300 text-xs font-bold text-slate-700 transition">
+          ← Về Trang chủ Web
+        </a>
+        <a href="/result.html?mode=any" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-sm transition">
+          🎰 Mở Trang Quay Món & Đặt Shipper
+        </a>
+      </div>
+    </header>
+
+    <main class="p-6 max-w-7xl w-full mx-auto space-y-6">
+
+      <!-- HÀNG THỐNG KÊ SỐ LƯỢNG (5 STATS CARDS LUÔN HIỂN THỊ) -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Tổng User</p>
+            <p class="text-3xl font-extrabold text-slate-900 mt-1"><%= totalUsers %></p>
+            <p class="text-xs text-emerald-600 font-medium mt-1">Đang hoạt động</p>
+          </div>
+          <div class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center text-2xl">👥</div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Tổng Quán Ăn</p>
+            <p class="text-3xl font-extrabold text-slate-900 mt-1"><%= totalRestaurants %></p>
+            <p class="text-xs text-amber-600 font-semibold mt-1">🤝 <%= partnerCount %> quán hợp tác</p>
+          </div>
+          <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-2xl">🏪</div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Công Thức Nấu</p>
+            <p class="text-3xl font-extrabold text-slate-900 mt-1"><%= totalRecipes %></p>
+            <p class="text-xs text-indigo-600 font-medium mt-1">Gắn với 30 món quay</p>
+          </div>
+          <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-2xl">📖</div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Đơn Shipper</p>
+            <p class="text-3xl font-extrabold text-slate-900 mt-1"><%= totalOrders %></p>
+            <p class="text-xs text-blue-600 font-medium mt-1"><%= totalShippers %> tài xế liên kết</p>
+          </div>
+          <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-2xl">🛵</div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Doanh Thu Đơn</p>
+            <p class="text-2xl font-extrabold text-emerald-600 mt-1"><%= formatVND(totalRevenue) %></p>
+            <p class="text-xs text-slate-400 font-medium mt-1">Qua Shipper bên thứ 3</p>
+          </div>
+          <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-2xl">💰</div>
+        </div>
+      </div>
+
+      <!-- =========================================================================
+           TAB 1: TỔNG QUAN (OVERVIEW)
+      ========================================================================== -->
+      <section id="tab-overview" class="tab-pane space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Luồng hoạt động -->
+          <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-base font-extrabold text-slate-900">🚀 Luồng Liên Kết Dữ Liệu Thực Tế: Quay Món → Quán Hợp Tác → Đặt Shipper</h2>
+              <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700">Đang kích hoạt</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div class="p-4 rounded-xl bg-rose-50/70 border border-rose-100">
+                <div class="font-extrabold text-rose-600 mb-1">1. Người dùng Quay Món</div>
+                <p class="text-xs text-slate-600 leading-relaxed">Khi quay trúng bất kỳ món nào trong 30 món, hệ thống tự động truy vấn các <strong>Quán đang bán món đó</strong> và <strong>Công thức nấu</strong>.</p>
+              </div>
+              <div class="p-4 rounded-xl bg-amber-50/70 border border-amber-100">
+                <div class="font-extrabold text-amber-700 mb-1">2. Quán Hợp Tác Cung Cấp</div>
+                <p class="text-xs text-slate-600 leading-relaxed">Các quán có tích chọn <strong>Đối tác hợp tác</strong> sẽ được ưu tiên hiển thị đầu tiên kèm giá bán, hotline và nút Đặt món ngay.</p>
+              </div>
+              <div class="p-4 rounded-xl bg-emerald-50/70 border border-emerald-100">
+                <div class="font-extrabold text-emerald-700 mb-1">3. Gọi Shipper Bên Thứ 3</div>
+                <p class="text-xs text-slate-600 leading-relaxed">Khách chọn đơn vị giao (GrabFood, ShopeeFood, BeFood...) và đặt ngay trên trang kết quả. Đơn đổ trực tiếp về Admin.</p>
+              </div>
+            </div>
+
+            <!-- Bảng đơn hàng mới nhất -->
+            <div class="mt-6">
+              <div class="flex items-center justify-between mb-3">
+                <h3 class="text-sm font-bold text-slate-800">🛵 Đơn đặt món gọi Shipper gần đây</h3>
+                <button type="button" onclick="activateTab('orders')" class="text-xs font-bold text-rose-600 hover:underline">Xem tất cả đơn →</button>
+              </div>
+              <div class="overflow-x-auto border border-slate-100 rounded-xl">
+                <table class="w-full text-left text-xs">
+                  <thead class="bg-slate-50 text-slate-500 uppercase">
+                    <tr>
+                      <th class="py-2.5 px-3">Mã đơn</th>
+                      <th class="py-2.5 px-3">Khách hàng</th>
+                      <th class="py-2.5 px-3">Món & Quán</th>
+                      <th class="py-2.5 px-3">Đơn vị Shipper</th>
+                      <th class="py-2.5 px-3">Tổng tiền</th>
+                      <th class="py-2.5 px-3">Trạng thái</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100">
+                    <% orders.slice(0, 5).forEach(o => { %>
+                      <tr>
+                        <td class="py-2.5 px-3 font-bold text-rose-600">#<%= o.orderCode %></td>
+                        <td class="py-2.5 px-3">
+                          <div class="font-semibold text-slate-800"><%= o.customerName %></div>
+                          <div class="text-slate-400"><%= o.customerPhone %></div>
+                        </td>
+                        <td class="py-2.5 px-3">
+                          <div class="font-bold text-slate-800"><%= o.dishName %> (x<%= o.quantity %>)</div>
+                          <div class="text-slate-500 truncate max-w-[180px]"><%= o.restaurantName %></div>
+                        </td>
+                        <td class="py-2.5 px-3">
+                          <span class="px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 font-semibold"><%= o.shipperProvider %></span>
+                          <div class="text-slate-400 mt-0.5"><%= o.shipperName %></div>
+                        </td>
+                        <td class="py-2.5 px-3 font-bold text-slate-800"><%= formatVND(o.totalAmount) %></td>
+                        <td class="py-2.5 px-3">
+                          <% if (o.status === 'completed') { %>
+                            <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-semibold">Hoàn thành</span>
+                          <% } else if (o.status === 'cancelled') { %>
+                            <span class="px-2 py-0.5 rounded-full bg-red-100 text-red-700 font-semibold">Đã hủy</span>
+                          <% } else { %>
+                            <span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-semibold">Đang giao</span>
+                          <% } %>
+                        </td>
+                      </tr>
+                    <% }) %>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cột phải: Thao tác nhanh -->
+          <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+            <h2 class="text-base font-extrabold text-slate-900">⚡ Quản lý nhanh dữ liệu</h2>
+            <p class="text-xs text-slate-500">Chọn phân hệ bên dưới để thêm hoặc chỉnh sửa dữ liệu gắn với vòng quay món ăn:</p>
+
+            <div class="space-y-2.5">
+              <button type="button" onclick="activateTab('restaurants')" class="w-full p-3.5 rounded-xl border border-slate-200 hover:border-rose-400 hover:bg-rose-50/40 text-left flex items-center justify-between transition">
+                <div>
+                  <div class="font-bold text-sm text-slate-800">🏪 Thêm / Gán món cho Quán</div>
+                  <div class="text-xs text-slate-500">Đánh dấu quán hợp tác & chọn các món quán bán</div>
+                </div>
+                <span class="text-rose-500 font-bold">→</span>
+              </button>
+
+              <button type="button" onclick="activateTab('recipes')" class="w-full p-3.5 rounded-xl border border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/40 text-left flex items-center justify-between transition">
+                <div>
+                  <div class="font-bold text-sm text-slate-800">📖 Cập nhật Công thức nấu ăn</div>
+                  <div class="text-xs text-slate-500">Chỉnh sửa nguyên liệu & các bước nấu cho 30 món</div>
+                </div>
+                <span class="text-indigo-500 font-bold">→</span>
+              </button>
+
+              <button type="button" onclick="activateTab('shippers')" class="w-full p-3.5 rounded-xl border border-slate-200 hover:border-emerald-400 hover:bg-emerald-50/40 text-left flex items-center justify-between transition">
+                <div>
+                  <div class="font-bold text-sm text-slate-800">🚚 Quản lý Đối tác Shipper</div>
+                  <div class="text-xs text-slate-500">GrabFood, ShopeeFood, BeFood, Shipper nội bộ</div>
+                </div>
+                <span class="text-emerald-600 font-bold">→</span>
+              </button>
+
+              <button type="button" onclick="activateTab('users')" class="w-full p-3.5 rounded-xl border border-slate-200 hover:border-amber-400 hover:bg-amber-50/40 text-left flex items-center justify-between transition">
+                <div>
+                  <div class="font-bold text-sm text-slate-800">👥 Quản lý Tài khoản User</div>
+                  <div class="text-xs text-slate-500">Thêm tài khoản, phân quyền Admin, khóa/mở khóa</div>
+                </div>
+                <span class="text-amber-600 font-bold">→</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================================================================
+           TAB 2: QUẢN LÝ QUÁN ĂN & ĐỐI TÁC HỢP TÁC (RESTAURANTS)
+      ========================================================================== -->
+      <section id="tab-restaurants" class="tab-pane space-y-6">
+        <!-- Form thêm quán đối tác mới -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+            <div>
+              <h2 class="text-lg font-extrabold text-slate-900">➕ Thêm Quán Ăn Mới & Gán Món Phục Vụ</h2>
+              <p class="text-xs text-slate-500">Khi bạn chọn các món ăn bên dưới, người dùng quay trúng món đó sẽ thấy ngay quán này để đặt Shipper!</p>
+            </div>
+          </div>
+
+          <form action="/admin/restaurants/add" method="POST" class="space-y-4 bg-slate-50 p-5 rounded-xl border border-slate-200/80">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Tên quán ăn tại Đà Nẵng *</label>
+                <input type="text" name="name" required placeholder="VD: Bánh Xèo Bà Dưỡng / Mì Quảng Bà Mua" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-rose-500">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Địa chỉ quán tại Đà Nẵng *</label>
+                <input type="text" name="address" required placeholder="VD: K280/23 Hoàng Diệu, Hải Châu, Đà Nẵng" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-rose-500">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Số điện thoại Hotline</label>
+                <input type="text" name="phone" placeholder="VD: 0905 123 456 / 0236 3..." class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-rose-500">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Nền ẩm thực / Phân loại</label>
+                <select name="category" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm bg-white focus:outline-none focus:border-rose-500">
+                  <option value="Việt Nam">Việt Nam</option>
+                  <option value="Nhật Bản">Nhật Bản</option>
+                  <option value="Hàn Quốc">Hàn Quốc</option>
+                  <option value="Trung Hoa">Trung Hoa</option>
+                  <option value="Thái Lan">Thái Lan</option>
+                  <option value="Ý">Ý (Âu)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Khung giá trung bình</label>
+                <input type="text" name="priceRange" placeholder="VD: 40k - 75k" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Giờ mở cửa</label>
+                <input type="text" name="openTime" value="06:30 - 22:30" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Chiết khấu hợp tác (%)</label>
+                <input type="number" name="commissionRate" value="15" min="0" max="50" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm">
+              </div>
+              <div class="flex items-end pb-1">
+                <label class="flex items-center gap-2 cursor-pointer select-none bg-amber-50 border border-amber-200 px-3.5 py-2 rounded-xl w-full">
+                  <input type="checkbox" name="isPartner" checked class="w-4 h-4 accent-rose-600">
+                  <span class="text-xs font-bold text-amber-900">🤝 Quán Hợp Tác Chính Thức</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Chọn các đơn vị Shipper liên kết -->
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1.5">🚚 Đơn vị Shipper bên thứ 3 liên kết với quán:</label>
+              <div class="flex flex-wrap gap-3">
+                <% ['GrabFood', 'ShopeeFood', 'BeFood', 'Ahamove', 'Shipper Nội Bộ'].forEach(sp => { %>
+                  <label class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-xs font-semibold cursor-pointer">
+                    <input type="checkbox" name="shippers" value="<%= sp %>" checked class="accent-rose-600">
+                    <span>🛵 <%= sp %></span>
+                  </label>
+                <% }) %>
+              </div>
+            </div>
+
+            <!-- Chọn các món ăn quán này cung cấp -->
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1.5">🍜 Chọn các món ăn đang có tại quán (Quay trúng món nào sẽ hiện quán này):</label>
+              <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 max-h-48 overflow-y-auto p-3 bg-white rounded-xl border border-slate-200">
+                <% allDishes.forEach(d => { %>
+                  <label class="flex items-center gap-2 text-xs p-1.5 rounded hover:bg-rose-50 cursor-pointer">
+                    <input type="checkbox" name="dishes" value="<%= d.id %>" class="accent-rose-600">
+                    <span class="truncate font-medium"><%= d.name %></span>
+                  </label>
+                <% }) %>
+              </div>
+            </div>
+
+            <div class="flex justify-end">
+              <button type="submit" class="bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 px-6 rounded-xl text-sm shadow-sm transition">
+                + Lưu Quán Ăn & Kết Nối Món Quay
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Danh sách các quán ăn hiện có -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-extrabold text-slate-900">📍 Danh sách Quán Ăn & Đối Tác Cung Cấp (<%= restaurants.length %>)</h2>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-sm">
+              <thead>
+                <tr class="border-b border-slate-200 text-xs text-slate-400 uppercase bg-slate-50">
+                  <th class="py-3 px-4">Tên quán & Địa chỉ</th>
+                  <th class="py-3 px-4">Trạng thái Hợp tác</th>
+                  <th class="py-3 px-4">Các món đang phục vụ (Gắn với vòng quay)</th>
+                  <th class="py-3 px-4">Shipper liên kết</th>
+                  <th class="py-3 px-4 text-right">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                <% restaurants.forEach(item => { %>
+                  <tr class="hover:bg-slate-50/80 align-top">
+                    <td class="py-4 px-4">
+                      <div class="font-extrabold text-slate-900 text-base"><%= item.name %></div>
+                      <div class="text-xs text-slate-500 mt-0.5">📍 <%= item.address %></div>
+                      <div class="text-xs text-slate-500 mt-1 flex flex-wrap gap-3">
+                        <span>📞 <%= item.phone || '0905 123 456' %></span>
+                        <span>💰 <%= item.priceRange %></span>
+                        <span class="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-semibold"><%= item.category %></span>
+                      </div>
+                      <div class="mt-2 flex flex-wrap gap-2">
+                        <a href="/api/restaurants/<%= item._id %>" target="_blank" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800 text-emerald-400 hover:bg-slate-700 text-[11px] font-mono font-semibold">
+                          🔗 GET /api/restaurants/<%= String(item._id).slice(0, 6) %>... ↗
+                        </a>
+                        <a href="/api/restaurants/<%= item._id %>/menu" target="_blank" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 text-[11px] font-mono font-semibold">
+                          📋 API Menu Quán ↗
+                        </a>
+                      </div>
+                    </td>
+
+                    <td class="py-4 px-4">
+                      <% if (item.isPartner) { %>
+                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700">
+                          🤝 Đối tác chính thức
+                        </span>
+                        <div class="text-[11px] text-slate-400 mt-1">Chiết khấu: <%= item.commissionRate || 15 %>%</div>
+                      <% } else { %>
+                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">
+                          Quán thường (Gợi ý)
+                        </span>
+                      <% } %>
+                      <form action="/admin/restaurants/<%= item._id %>/toggle-partner" method="POST" class="mt-2">
+                        <button type="submit" class="text-xs font-bold text-indigo-600 hover:underline">
+                          <%= item.isPartner ? 'Hủy hợp tác' : '→ Chuyển thành Đối tác' %>
+                        </button>
+                      </form>
+                    </td>
+
+                    <td class="py-4 px-4 max-w-xs">
+                      <div class="flex flex-wrap gap-1">
+                        <% if (Array.isArray(item.dishes) && item.dishes.length > 0) { %>
+                          <% item.dishes.forEach(dId => { %>
+                            <a href="/result.html?dish=<%= dId %>" target="_blank" class="px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 border border-rose-200 text-xs font-semibold hover:bg-rose-100">
+                              🍜 <%= dishMap[dId] || dId %>
+                            </a>
+                          <% }) %>
+                        <% } else { %>
+                          <span class="text-xs text-slate-400 italic">Chưa gán món</span>
+                        <% } %>
+                      </div>
+                    </td>
+
+                    <td class="py-4 px-4">
+                      <div class="flex flex-wrap gap-1">
+                        <% (item.shippers || ['GrabFood', 'ShopeeFood']).forEach(sp => { %>
+                          <span class="px-2 py-0.5 rounded bg-blue-50 text-blue-700 text-xs font-semibold">🛵 <%= sp %></span>
+                        <% }) %>
+                      </div>
+                    </td>
+
+                    <td class="py-4 px-4 text-right">
+                      <form action="/admin/restaurants/<%= item._id %>/delete" method="POST" onsubmit="return confirm('Bạn chắc chắn muốn xóa quán ăn này?')">
+                        <button type="submit" class="px-3 py-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 text-xs font-bold">
+                          Xóa quán
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================================================================
+           TAB 3: ĐƠN ĐẶT MÓN & ĐIỀU PHỐI SHIPPER (ORDERS)
+      ========================================================================== -->
+      <section id="tab-orders" class="tab-pane space-y-6">
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+            <div>
+              <h2 class="text-lg font-extrabold text-slate-900">🛵 Quản lý Đơn Đặt Món & Điều Phối Shipper Trực Tiếp (<%= orders.length %>)</h2>
+              <p class="text-xs text-slate-500">Toàn bộ đơn khách đặt sau khi quay món sẽ đổ về đây theo thời gian thực.</p>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-sm">
+              <thead>
+                <tr class="border-b border-slate-200 text-xs text-slate-400 uppercase bg-slate-50">
+                  <th class="py-3 px-4">Mã Đơn</th>
+                  <th class="py-3 px-4">Thông tin Khách hàng</th>
+                  <th class="py-3 px-4">Món đặt & Quán cung cấp</th>
+                  <th class="py-3 px-4">Shipper Bên Thứ 3</th>
+                  <th class="py-3 px-4">Thanh toán</th>
+                  <th class="py-3 px-4">Trạng thái</th>
+                  <th class="py-3 px-4 text-right">Cập nhật</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                <% orders.forEach(o => { %>
+                  <tr class="hover:bg-slate-50/80">
+                    <td class="py-3.5 px-4 font-extrabold text-rose-600">#<%= o.orderCode %></td>
+                    <td class="py-3.5 px-4">
+                      <div class="font-bold text-slate-900"><%= o.customerName %></div>
+                      <div class="text-xs text-slate-500">📞 <%= o.customerPhone %></div>
+                      <div class="text-xs text-slate-500">📍 <%= o.customerAddress %></div>
+                      <% if (o.note) { %>
+                        <div class="text-xs text-amber-700 bg-amber-50 px-2 py-0.5 rounded mt-1 inline-block">Ghi chú: <%= o.note %></div>
+                      <% } %>
+                    </td>
+                    <td class="py-3.5 px-4">
+                      <div class="font-extrabold text-slate-900"><%= o.dishName %> <span class="text-rose-600">x<%= o.quantity %></span></div>
+                      <div class="text-xs text-slate-500">🏪 <%= o.restaurantName %></div>
+                    </td>
+                    <td class="py-3.5 px-4">
+                      <span class="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 text-xs font-bold">🛵 <%= o.shipperProvider %></span>
+                      <div class="text-xs font-semibold text-slate-700 mt-1">👨‍✈️ <%= o.shipperName %></div>
+                      <div class="text-xs text-slate-400"><%= o.shipperPhone %> · <%= o.shipperPlate %></div>
+                    </td>
+                    <td class="py-3.5 px-4">
+                      <div class="font-extrabold text-emerald-600"><%= formatVND(o.totalAmount) %></div>
+                      <div class="text-[11px] text-slate-400">Ship: <%= formatVND(o.shippingFee) %></div>
+                    </td>
+                    <td class="py-3.5 px-4">
+                      <% if (o.status === 'completed') { %>
+                        <span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold">✅ Đã giao xong</span>
+                      <% } else if (o.status === 'cancelled') { %>
+                        <span class="px-2.5 py-1 rounded-full bg-red-100 text-red-700 text-xs font-bold">❌ Đã hủy</span>
+                      <% } else { %>
+                        <span class="px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-bold">🛵 Shipper đang giao</span>
+                      <% } %>
+                    </td>
+                    <td class="py-3.5 px-4 text-right space-y-1">
+                      <form action="/admin/orders/<%= o._id %>/status" method="POST" class="inline-flex gap-1">
+                        <select name="status" onchange="this.form.submit()" class="text-xs border border-slate-300 rounded-lg px-2 py-1 bg-white">
+                          <option value="delivering" <%= o.status === 'delivering' ? 'selected' : '' %>>Đang giao</option>
+                          <option value="completed" <%= o.status === 'completed' ? 'selected' : '' %>>Hoàn thành</option>
+                          <option value="cancelled" <%= o.status === 'cancelled' ? 'selected' : '' %>>Hủy đơn</option>
+                        </select>
+                      </form>
+                      <form action="/admin/orders/<%= o._id %>/delete" method="POST" class="inline">
+                        <button type="submit" class="text-xs text-rose-500 hover:underline ml-2">Xóa</button>
+                      </form>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================================================================
+           TAB 4: QUẢN LÝ CÔNG THỨC NẤU ĂN (RECIPES)
+      ========================================================================== -->
+      <section id="tab-recipes" class="tab-pane space-y-6">
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+          <h2 class="text-lg font-extrabold text-slate-900 mb-1">👩‍🍳 Thêm / Cập Nhật Công Thức Nấu Ăn Cho Món Quay</h2>
+          <p class="text-xs text-slate-500 mb-4">Khi người dùng quay ra món ăn nhưng muốn tự nấu tại nhà, công thức này sẽ hiển thị chi tiết ngay trên trang kết quả.</p>
+
+          <form action="/admin/recipes/save" method="POST" class="space-y-4 bg-slate-50 p-5 rounded-xl border border-slate-200">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Chọn Món Ăn *</label>
+                <select name="dishId" required class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm bg-white">
+                  <% allDishes.forEach(d => { %>
+                    <option value="<%= d.id %>"><%= d.name %> (<%= d.id %>)</option>
+                  <% }) %>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Thời gian chuẩn bị & nấu</label>
+                <input type="text" name="prepTime" value="30 phút" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Độ khó</label>
+                <select name="difficulty" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm bg-white">
+                  <option value="Dễ">Dễ</option>
+                  <option value="Trung bình">Trung bình</option>
+                  <option value="Khó">Khó</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Lượng Calories</label>
+                <input type="text" name="calories" value="480 kcal" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Danh sách Nguyên liệu (Mỗi dòng 1 nguyên liệu) *</label>
+                <textarea name="ingredientsText" rows="4" required placeholder="500g bánh phở&#10;300g thịt bò tái&#10;Hành lá, ngò gai, gia vị..." class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm"></textarea>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Các bước thực hiện (Mỗi dòng 1 bước) *</label>
+                <textarea name="stepsText" rows="4" required placeholder="Bước 1: Sơ chế nguyên liệu...&#10;Bước 2: Ninh nước dùng...&#10;Bước 3: Trình bày ra tô và thưởng thức..." class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm"></textarea>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-between gap-4">
+              <input type="text" name="tips" placeholder="💡 Bí quyết đầu bếp (Tùy chọn)..." class="flex-1 px-3.5 py-2 rounded-xl border border-slate-300 text-sm">
+              <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-6 rounded-xl text-sm transition">
+                💾 Lưu Công Thức Món Ăn
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Danh sách công thức -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+          <h3 class="text-base font-extrabold text-slate-900 mb-4">📚 Kho Công Thức Đã Liên Kết (<%= recipes.length %> món)</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <% recipes.forEach(rc => { %>
+              <div class="p-4 rounded-xl border border-slate-200 hover:border-indigo-300 transition bg-slate-50/50 flex flex-col justify-between">
+                <div>
+                  <div class="flex items-center justify-between gap-2">
+                    <a href="/result.html?dish=<%= rc.dishId %>" target="_blank" class="font-extrabold text-slate-900 hover:text-rose-600 text-base">
+                      🍲 <%= rc.dishName %> ↗
+                    </a>
+                    <span class="text-xs px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-semibold">
+                      ⏱ <%= rc.prepTime %> · <%= rc.difficulty %>
+                    </span>
+                  </div>
+                  <p class="text-xs text-slate-500 mt-2">
+                    <strong>Nguyên liệu (<%= (rc.ingredients || []).length %>):</strong>
+                    <%= (rc.ingredients || []).slice(0, 3).join(', ') %>...
+                  </p>
+                  <p class="text-xs text-slate-500 mt-1">
+                    <strong>Các bước (<%= (rc.steps || []).length %> bước):</strong>
+                    <%= (rc.steps && rc.steps[0]) ? rc.steps[0] : '' %>
+                  </p>
+                </div>
+              </div>
+            <% }) %>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================================================================
+           TAB 5: QUẢN LÝ ĐỐI TÁC SHIPPER BÊN THỨ 3 (SHIPPERS)
+      ========================================================================== -->
+      <section id="tab-shippers" class="tab-pane space-y-6">
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+          <h2 class="text-lg font-extrabold text-slate-900 mb-4">🚚 Thêm Tài Xế / Đối Tác Shipper Liên Kết</h2>
+          <form action="/admin/shippers/add" method="POST" class="grid grid-cols-1 md:grid-cols-5 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <input type="text" name="name" required placeholder="Họ tên tài xế..." class="px-3.5 py-2 rounded-xl border border-slate-300 text-sm">
+            <input type="text" name="phone" required placeholder="Số điện thoại..." class="px-3.5 py-2 rounded-xl border border-slate-300 text-sm">
+            <select name="provider" class="px-3.5 py-2 rounded-xl border border-slate-300 text-sm bg-white">
+              <option value="GrabFood">GrabFood</option>
+              <option value="ShopeeFood">ShopeeFood</option>
+              <option value="BeFood">BeFood</option>
+              <option value="Ahamove">Ahamove</option>
+              <option value="Shipper Nội Bộ">Shipper Nội Bộ</option>
+            </select>
+            <input type="text" name="vehiclePlate" placeholder="Biển số xe Đà Nẵng (VD: 43-C1 688.99)" class="px-3.5 py-2 rounded-xl border border-slate-300 text-sm">
+            <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-xl text-sm transition">
+              + Thêm Tài Xế Shipper
+            </button>
+          </form>
+
+          <div class="overflow-x-auto mt-6">
+            <table class="w-full text-left border-collapse text-sm">
+              <thead>
+                <tr class="border-b border-slate-200 text-xs text-slate-400 uppercase bg-slate-50">
+                  <th class="py-3 px-4">Tài xế</th>
+                  <th class="py-3 px-4">Đơn vị Bên thứ 3</th>
+                  <th class="py-3 px-4">Biển số & Liên hệ</th>
+                  <th class="py-3 px-4">Đánh giá & Đơn hoàn thành</th>
+                  <th class="py-3 px-4">Trạng thái</th>
+                  <th class="py-3 px-4 text-right">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                <% shippers.forEach(s => { %>
+                  <tr class="hover:bg-slate-50/80">
+                    <td class="py-3.5 px-4 font-bold text-slate-900">👨‍✈️ <%= s.name %></td>
+                    <td class="py-3.5 px-4">
+                      <span class="px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold">🛵 <%= s.provider %></span>
+                    </td>
+                    <td class="py-3.5 px-4 text-xs text-slate-600">
+                      <div>📞 <%= s.phone %></div>
+                      <div>🏍 <%= s.vehiclePlate %></div>
+                    </td>
+                    <td class="py-3.5 px-4 text-xs">
+                      <span class="font-bold text-amber-600">⭐ <%= s.rating || 4.9 %></span> · <strong><%= s.completedOrders || 100 %></strong> chuyến
+                    </td>
+                    <td class="py-3.5 px-4">
+                      <% if (s.status === 'available') { %>
+                        <span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold">🟢 Sẵn sàng nhận đơn</span>
+                      <% } else { %>
+                        <span class="px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-bold">🟡 Đang giao hàng</span>
+                      <% } %>
+                    </td>
+                    <td class="py-3.5 px-4 text-right space-x-2">
+                      <form action="/admin/shippers/<%= s._id %>/toggle-status" method="POST" class="inline">
+                        <button type="submit" class="text-xs font-bold text-indigo-600 hover:underline">Đổi trạng thái</button>
+                      </form>
+                      <form action="/admin/shippers/<%= s._id %>/delete" method="POST" class="inline">
+                        <button type="submit" class="text-xs font-bold text-rose-600 hover:underline">Xóa</button>
+                      </form>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================================================================
+           TAB 6: QUẢN LÝ NGƯỜI DÙNG (USERS)
+      ========================================================================== -->
+      <section id="tab-users" class="tab-pane space-y-6">
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+          <h2 class="text-lg font-extrabold text-slate-900 mb-4">👤 Quản lý Tài khoản Người dùng (<%= totalUsers %>)</h2>
+
+          <!-- Form tạo user nhanh -->
+          <form action="/admin/users/add" method="POST" class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6 bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <input type="text" name="username" required placeholder="Tên người dùng..." class="px-3.5 py-2 rounded-xl border border-slate-300 text-sm">
+            <input type="email" name="email" required placeholder="Email đăng nhập..." class="px-3.5 py-2 rounded-xl border border-slate-300 text-sm">
+            <input type="password" name="password" required placeholder="Mật khẩu..." class="px-3.5 py-2 rounded-xl border border-slate-300 text-sm">
+            <select name="role" class="px-3.5 py-2 rounded-xl border border-slate-300 text-sm bg-white">
+              <option value="user">User thường</option>
+              <option value="admin">Quản trị viên (Admin)</option>
+            </select>
+            <button type="submit" class="bg-rose-600 hover:bg-rose-700 text-white font-bold py-2 px-4 rounded-xl text-sm transition">
+              + Thêm Tài Khoản
+            </button>
+          </form>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-sm">
+              <thead>
+                <tr class="border-b border-slate-200 text-xs text-slate-400 uppercase bg-slate-50">
+                  <th class="py-3 px-4">Tên người dùng</th>
+                  <th class="py-3 px-4">Email</th>
+                  <th class="py-3 px-4">Vai trò (Role)</th>
+                  <th class="py-3 px-4">Trạng thái</th>
+                  <th class="py-3 px-4 text-right">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                <% users.forEach(u => { %>
+                  <tr class="hover:bg-slate-50/80">
+                    <td class="py-3.5 px-4 font-bold text-slate-900"><%= u.username %></td>
+                    <td class="py-3.5 px-4 text-slate-600"><%= u.email %></td>
+                    <td class="py-3.5 px-4">
+                      <% if (u.role === 'admin') { %>
+                        <span class="px-2.5 py-1 bg-rose-100 text-rose-700 rounded-full text-xs font-extrabold">Admin</span>
+                      <% } else { %>
+                        <span class="px-2.5 py-1 bg-slate-100 text-slate-700 rounded-full text-xs font-semibold">User</span>
+                      <% } %>
+                    </td>
+                    <td class="py-3.5 px-4">
+                      <% if (u.isActive) { %>
+                        <span class="px-2.5 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold">Hoạt động</span>
+                      <% } else { %>
+                        <span class="px-2.5 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold">Đã khóa</span>
+                      <% } %>
+                    </td>
+                    <td class="py-3.5 px-4 text-right space-x-3">
+                      <% if (u.role !== 'admin') { %>
+                        <form action="/admin/users/<%= u._id %>/toggle-active" method="POST" class="inline">
+                          <button type="submit" class="text-amber-600 hover:underline text-xs font-bold">
+                            <%= u.isActive ? 'Khóa TK' : 'Mở khóa' %>
+                          </button>
+                        </form>
+                        <form action="/admin/users/<%= u._id %>/delete" method="POST" class="inline" onsubmit="return confirm('Xóa người dùng này?')">
+                          <button type="submit" class="text-rose-600 hover:underline text-xs font-bold">Xóa</button>
+                        </form>
+                      <% } else { %>
+                        <span class="text-xs text-slate-400 italic">Mặc định</span>
+                      <% } %>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    const initialTab = "<%= activeTab || 'overview' %>";
+    function activateTab(tabName) {
+      document.querySelectorAll('.tab-pane').forEach(el => {
+        el.classList.toggle('active', el.id === 'tab-' + tabName);
+      });
+      document.querySelectorAll('.sidebar-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.target === tabName);
+      });
+    }
+    document.querySelectorAll('.sidebar-btn').forEach(btn => {
+      btn.addEventListener('click', () => activateTab(btn.dataset.target));
+    });
+    activateTab(initialTab);
+  </script>
+</body>
+</html>
